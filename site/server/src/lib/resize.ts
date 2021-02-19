@@ -1,8 +1,14 @@
 import fs from 'fs';
+import sharp from 'sharp';
+
 export class Image {
   public static async resize(path: string, format?: string, width?: number, height?: number) {
     const readStream = fs.createReadStream(path);
-    return readStream;
+    let transform = sharp();
+    if (width || height) {
+      transform = transform.resize(width, height);
+    }
+    return readStream.pipe(transform);
   };
 }
 

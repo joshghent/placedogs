@@ -17,7 +17,10 @@ router.get('/g/:width/:height', asyncHandler(() => {
 router.get('/:width/:height', asyncHandler(async (req, res) => {
   const randomImagePath = `${randomNumber(1, 9)}.jpeg`;
   res.type('image/jpeg');
-  await (await Image.resize(`${appRoot}/server/images/${randomImagePath}`)).pipe(res);
+  if ((req.params.width && isNaN(Number(req.params.width))) || (req.params.height && isNaN(Number(req.params.height)))) {
+    return res.status(400).json({ "message": "Please provide a valid width and height" });
+  }
+  await (await Image.resize(`${appRoot}/server/images/${randomImagePath}`, 'jpeg', Number(req.params.width), Number(req.params.height))).pipe(res);
 }));
 
 router.get('/health', (req: Request, res: Response) => {
