@@ -2,8 +2,13 @@ import express, { Request, Response } from 'express';
 import asyncHandler from 'express-async-handler';
 import appRoot from 'app-root-path';
 import Image from '../lib/resize';
+import path from 'path';
 
 const router = express.Router();
+
+router.get('/', (req, res) => {
+  res.sendFile(path.join(`${appRoot}`, 'build', 'index.html'));
+});
 
 const randomNumber = (min: number, max: number) => {
   const r = Math.random() * (max - min) + min;
@@ -27,4 +32,4 @@ router.get('/health', (req: Request, res: Response) => {
   return res.json({ message: 'OK' });
 });
 
-export default router;;
+export default router;

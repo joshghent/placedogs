@@ -1,6 +1,8 @@
 import express from 'express';
 import bodyParser from 'body-parser';
 import helmet from 'helmet';
+import path from 'path';
+import appRoot from 'app-root-path';
 import { middleware as httpContextMiddleware } from "express-http-context";
 import router from '../routes';
 
@@ -13,10 +15,12 @@ export class Application {
 
     this.instance = express();
 
+    this.instance.use(express.static(path.join(`${appRoot}`, 'build')));
+
     this.instance.use(bodyParser.json());
     this.instance.use(bodyParser.urlencoded({ extended: true }));
     this.instance.use(httpContextMiddleware);
-    this.instance.use(helmet());
+    this.instance.use(helmet({ contentSecurityPolicy: false }));
 
     this.instance.use(router);
 

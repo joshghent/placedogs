@@ -7,7 +7,11 @@ const express_1 = __importDefault(require("express"));
 const express_async_handler_1 = __importDefault(require("express-async-handler"));
 const app_root_path_1 = __importDefault(require("app-root-path"));
 const resize_1 = __importDefault(require("../lib/resize"));
+const path_1 = __importDefault(require("path"));
 const router = express_1.default.Router();
+router.get('/', (req, res) => {
+    res.sendFile(path_1.default.join(`${app_root_path_1.default}`, 'build', 'index.html'));
+});
 const randomNumber = (min, max) => {
     const r = Math.random() * (max - min) + min;
     return Math.floor(r);
@@ -26,4 +30,3 @@ router.get('/health', (req, res) => {
     return res.json({ message: 'OK' });
 });
 exports.default = router;
-;
