@@ -6,11 +6,9 @@ services:
     restart: always
     networks:
       - https-proxy
-    expose:
-      - "1337"
     environment:
-      - VIRTUAL_HOST=
-      - LETSENCRYPT_HOST=api.turboapi.dev
+      - VIRTUAL_HOST=place.dog
+      - LETSENCRYPT_HOST=place.dog
       - LETSENCRYPT_EMAIL=josh@turboapi.dev
       - VIRTUAL_PORT=8080
 

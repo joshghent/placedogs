@@ -3,6 +3,6 @@ LABEL maintainer "Josh Ghent <me@joshghent.com>"
 
 WORKDIR /app
 COPY . /app
-RUN npm ci && npm run build
+RUN npm ci && npm run build && npm run build:server
 EXPOSE 8080
-CMD ["node", "dist/server.js"]
+CMD ["node", "./server/dist/server.js"]
