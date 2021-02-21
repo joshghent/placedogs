@@ -28,6 +28,7 @@ router.get('/:width/:height', asyncHandler(async (req, res) => {
       console.log(`Invalid request ${req.path}`);
       return res.status(400).json({ "message": "Please provide a valid width and height" });
     }
+    console.log(`Got image path '${appRoot}/server/images/${randomImagePath}'`);
     return Image.resize(`${appRoot}/server/images/${randomImagePath}`, 'jpeg', Number(req.params.width), Number(req.params.height)).pipe(res);
   } catch (err) {
     console.error(err);

@@ -8,6 +8,8 @@ services:
       - "8033"
     networks:
       - https-proxy
+    volumes:
+      - $PWD:/app
     environment:
       - VIRTUAL_HOST=place.dog,dogs.ghent.cloud
       - LETSENCRYPT_HOST=place.dog,dogs.ghent.cloud

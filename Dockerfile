@@ -15,5 +15,5 @@ RUN	apk --no-cache add libpng librsvg libgsf giflib libjpeg-turbo musl \
 WORKDIR /app
 COPY . /app
 RUN npm ci && npm run build && npm run build:server
-EXPOSE 8080
+EXPOSE 8033
 CMD ["node", "./server/dist/server.js"]
