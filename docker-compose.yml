@@ -7,8 +7,8 @@ services:
     networks:
       - https-proxy
     environment:
-      - VIRTUAL_HOST=place.dog
-      - LETSENCRYPT_HOST=place.dog
+      - VIRTUAL_HOST=place.dog,dogs.ghent.cloud
+      - LETSENCRYPT_HOST=place.dog,dogs.ghent.cloud
       - LETSENCRYPT_EMAIL=josh@turboapi.dev
       - VIRTUAL_PORT=8080
 
