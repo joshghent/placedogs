@@ -1,0 +1,33 @@
+name: Docker Image CI
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  build-and-publish-latest:
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main' # Running this job only for master branch
+
+    steps:
+      - uses: actions/checkout@v2 # Checking out the repo
+
+      - name: Build and Publish latest Docker image
+        uses: VaultVulp/gp-docker-action@1.0.1
+        with:
+          github-token: ${{ secrets.GH_TOKEN }} # Provide GITHUB_TOKEN to login into the GitHub Packages
+          image-name: placedogs # Provide only Docker image name, tag will be automatically set to latest
+
+      - name: Declare some variables
+        id: vars
+        shell: bash
+        run: |
+          echo "##[set-output name=branch;]$(echo ${GITHUB_REF#refs/heads/})"
+          echo "::set-output name=sha_short::$(git rev-parse --short HEAD)"
+
+      - name: Publish Git Based Image
+        uses: VaultVulp/gp-docker-action@1.1.7
+        with:
+          github-token: ${{ secrets.GH_TOKEN }} # Provide GITHUB_TOKEN to login into the GitHub Packages
+          image-name: api # Provide only Docker image name
+          image-tag: ${{ steps.vars.outputs.sha_short }} # Provide flag to extract Docker image tag from git reference
