@@ -5,7 +5,22 @@ const start = async () => {
   const HOST = process.env.HOST !== '' && process.env.HOST ? String(process.env.HOST) : "0.0.0.0";
 
   const app = Application.getInstance();
-  app.listen(PORT, HOST, () => { console.log(`Server started on http://${HOST}:${PORT}`); });
+  const httpServer = app.listen(PORT, HOST, () => { console.log(`Server started on http://${HOST}:${PORT}`); });
+
+  const terminateConnection = () => {
+    try {
+      if (httpServer) {
+        httpServer.close();
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  process.on("exit", terminateConnection);
+  process.on("unhandledRejection", terminateConnection);
+  process.on("uncaughtException", terminateConnection); // unexpected crash
+  process.on("SIGINT", terminateConnection); // Ctrl + C (1)
 };
 
 const main = () => {

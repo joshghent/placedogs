@@ -2,7 +2,7 @@ import fs from 'fs';
 import sharp from 'sharp';
 
 export class Image {
-  public static async resize(path: string, format?: string, width?: number, height?: number) {
+  public static resize(path: string, format?: string, width?: number, height?: number) {
     const readStream = fs.createReadStream(path);
     let transform = sharp();
     if (width || height) {
