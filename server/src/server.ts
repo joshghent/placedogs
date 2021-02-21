@@ -8,6 +8,7 @@ const start = async () => {
   const httpServer = app.listen(PORT, HOST, () => { console.log(`Server started on http://${HOST}:${PORT}`); });
 
   const terminateConnection = () => {
+    console.log(`Server Terminated`);
     try {
       if (httpServer) {
         httpServer.close();
