@@ -29,6 +29,7 @@ export class Application {
     });
 
     this.instance.use((err: Error, req: express.Request, res: express.Response, next: express.NextFunction) => {
+      console.log(`Error when processing request (${req.path}). Error: ${JSON.stringify(err)}`);
       if (process.env.NODE_ENV === "dev") return res.status(500).jsonp({ error: { message: err.message, stack: err.stack } });
       return res.status(500).jsonp({ error: { message: err.message } });
     });
