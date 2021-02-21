@@ -1,7 +1,7 @@
 import { Application } from './lib/application';
 
 const start = async () => {
-  const PORT = Number(process.env.PORT) || 8080;
+  const PORT = Number(process.env.PORT) || 8033;
   const HOST = process.env.HOST !== '' && process.env.HOST ? String(process.env.HOST) : "0.0.0.0";
 
   const app = Application.getInstance();
