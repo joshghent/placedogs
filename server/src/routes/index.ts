@@ -15,10 +15,6 @@ const randomNumber = (min: number, max: number) => {
   return Math.floor(r);
 };
 
-router.get('/g/:width/:height', asyncHandler(() => {
-
-}));
-
 router.get('/:width/:height', asyncHandler(async (req, res) => {
   try {
     const randomImagePath = `${randomNumber(1, 9)}.jpeg`;
@@ -29,7 +25,10 @@ router.get('/:width/:height', asyncHandler(async (req, res) => {
       return res.status(400).json({ "message": "Please provide a valid width and height" });
     }
     console.log(`Got image path '${appRoot}/server/images/${randomImagePath}'`);
-    return Image.resize(`${appRoot}/server/images/${randomImagePath}`, 'jpeg', Number(req.params.width), Number(req.params.height)).pipe(res);
+    const resizeTimer = new Date();
+    const response = Image.resize(`${appRoot}/server/images/${randomImagePath}`, 'jpeg', Number(req.params.width), Number(req.params.height));
+    console.log(`Completed image resize in ${(new Date().getTime() - resizeTimer.getTime())} ms`);
+    return response.pipe(res);
   } catch (err) {
     console.error(err);
     throw err;

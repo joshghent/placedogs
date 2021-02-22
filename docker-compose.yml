@@ -9,7 +9,7 @@ services:
     networks:
       - https-proxy
     volumes:
-      - $PWD:/app
+      - $PWD/.cache:/app/.cache
     environment:
       - VIRTUAL_HOST=place.dog,dogs.ghent.cloud
       - LETSENCRYPT_HOST=place.dog,dogs.ghent.cloud

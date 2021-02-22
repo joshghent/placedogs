@@ -2,6 +2,7 @@ import express from 'express';
 import bodyParser from 'body-parser';
 import helmet from 'helmet';
 import path from 'path';
+import morgan from 'morgan';
 import appRoot from 'app-root-path';
 import { middleware as httpContextMiddleware } from "express-http-context";
 import router from '../routes';
@@ -21,6 +22,11 @@ export class Application {
     this.instance.use(bodyParser.urlencoded({ extended: true }));
     this.instance.use(httpContextMiddleware);
     this.instance.use(helmet({ contentSecurityPolicy: false }));
+
+    this.instance.use(morgan(':method :status :url (:res[content-length] bytes) :response-time ms', {
+      stream: { write: (text) => console.info(text.trim()) },
+      immediate: false,
+    }));
 
     this.instance.use(router);
 
