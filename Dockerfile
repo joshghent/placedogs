@@ -12,7 +12,7 @@ RUN	apk --no-cache add libpng librsvg libgsf giflib libjpeg-turbo musl \
   && chown node:node /usr/local/lib/node_modules -R \
   && apk del .build-dependencies
 
-RUN apk update && apk install --force-yes -yy \
+RUN apk update && apk add \
   libjemalloc1 \
   && rm -rf /var/lib/apt/lists/*
 
