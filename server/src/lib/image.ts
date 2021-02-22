@@ -8,6 +8,7 @@ export class Image {
       const readStream = fs.createReadStream(path);
       console.log(`Created read stream to '${path}'`);
       let transform = sharp();
+      sharp.concurrency(1);
       console.log(`Created sharp instance`);
       if (width || height) {
         console.log(`Transforming image to h: ${height}, w: ${width}`);
