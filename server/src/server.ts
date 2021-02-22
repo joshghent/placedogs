@@ -32,4 +32,4 @@ const main = () => {
     });
 };
 
-main();;;
+main();

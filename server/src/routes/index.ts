@@ -17,7 +17,8 @@ const randomNumber = (min: number, max: number) => {
 
 router.get('/:width/:height', asyncHandler(async (req, res) => {
   try {
-    const randomImagePath = `${randomNumber(1, 9)}.jpeg`;
+    const number = randomNumber(1, 9);
+    const randomImagePath = `${number}.jpeg`;
     console.log(`Got random image ${randomImagePath}`);
     res.type('image/jpeg');
     if ((req.params.width && isNaN(Number(req.params.width))) || (req.params.height && isNaN(Number(req.params.height)))) {
@@ -28,7 +29,9 @@ router.get('/:width/:height', asyncHandler(async (req, res) => {
     const resizeTimer = new Date();
     const response = Image.resize(`${appRoot}/server/images/${randomImagePath}`, 'jpeg', Number(req.params.width), Number(req.params.height));
     console.log(`Completed image resize in ${(new Date().getTime() - resizeTimer.getTime())} ms`);
-    return response.pipe(res);
+    const cachePath = `${appRoot}/.cache/${number}/${req.params.width}/${req.params.height}/${new Date().getTime()}.jpeg`;
+    await Image.save(cachePath, response);
+    return res.sendFile(cachePath);
   } catch (err) {
     console.error(err);
     throw err;

@@ -1,4 +1,5 @@
 import fs from 'fs';
+import fse from 'fs-extra';
 import sharp from 'sharp';
 
 export class Image {
@@ -20,6 +21,12 @@ export class Image {
       throw err;
     }
   };
+
+  public static async save(path: string, image: sharp.Sharp) {
+    const buffer = await image.toBuffer();
+    const res = await fse.outputFileSync(path, buffer);
+    return res;
+  }
 }
 
 export default Image;
