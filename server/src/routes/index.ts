@@ -1,7 +1,7 @@
 import express, { Request, Response } from 'express';
 import asyncHandler from 'express-async-handler';
 import appRoot from 'app-root-path';
-import Image from '../lib/resize';
+import Image from '../lib/image';
 import path from 'path';
 
 const router = express.Router();
@@ -31,7 +31,8 @@ router.get('/:width/:height', asyncHandler(async (req, res) => {
     console.log(`Completed image resize in ${(new Date().getTime() - resizeTimer.getTime())} ms`);
     const cachePath = `${appRoot}/.cache/${number}/${req.params.width}/${req.params.height}/${new Date().getTime()}.jpeg`;
     await Image.save(cachePath, response);
-    return res.sendFile(cachePath);
+    console.log("Successfully cached image. Returning file to request now");
+    res.sendFile(cachePath);
   } catch (err) {
     console.error(err);
     throw err;

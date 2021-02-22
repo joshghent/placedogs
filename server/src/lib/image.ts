@@ -24,7 +24,9 @@ export class Image {
 
   public static async save(path: string, image: sharp.Sharp) {
     const buffer = await image.toBuffer();
+    console.log("Saved image to Buffer");
     const res = await fse.outputFileSync(path, buffer);
+    console.log(`Saved new file ${path} to cache`);
     return res;
   }
 }
