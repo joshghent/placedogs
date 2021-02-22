@@ -23,6 +23,7 @@ export class Image {
   };
 
   public static async save(path: string, image: sharp.Sharp) {
+    console.log("Transforming image to buffer");
     const buffer = await image.toBuffer();
     console.log("Saved image to Buffer");
     const res = await fse.outputFileSync(path, buffer);
