@@ -17,6 +17,7 @@ export class Application {
     this.instance = express();
 
     this.instance.use(express.static(path.join(`${appRoot}`, 'build')));
+    this.instance.use(express.static(path.join(`${appRoot}`, 'server', 'images')));
 
     this.instance.use(bodyParser.json());
     this.instance.use(bodyParser.urlencoded({ extended: true }));

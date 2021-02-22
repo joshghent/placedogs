@@ -12,13 +12,6 @@ RUN	apk --no-cache add libpng librsvg libgsf giflib libjpeg-turbo musl \
   && chown node:node /usr/local/lib/node_modules -R \
   && apk del .build-dependencies
 
-RUN apk update && apk add \
-  libjemalloc1 \
-  && rm -rf /var/lib/apt/lists/*
-
-# Change memory allocator to avoid leaks
-ENV LD_PRELOAD=/usr/lib/x86_64-linux-gnu/libjemalloc.so.1
-
 WORKDIR /app
 COPY . /app
 RUN npm ci && npm run build && npm run build:server
