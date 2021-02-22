@@ -7,8 +7,8 @@ const start = async () => {
   const app = Application.getInstance();
   const httpServer = app.listen(PORT, HOST, () => { console.log(`Server started on http://${HOST}:${PORT}`); });
 
-  const terminateConnection = () => {
-    console.log(`Server Terminated`);
+  const terminateConnection = (err: Error) => {
+    console.log(`Server Terminated Error: ${JSON.stringify(err)}`);
     try {
       if (httpServer) {
         httpServer.close();
@@ -32,4 +32,4 @@ const main = () => {
     });
 };
 
-main();
+main();;;
