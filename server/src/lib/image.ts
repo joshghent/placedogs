@@ -24,12 +24,16 @@ export class Image {
   };
 
   public static async save(path: string, image: sharp.Sharp) {
-    console.log("Transforming image to buffer");
-    const buffer = await image.toBuffer();
-    console.log("Saved image to Buffer");
-    const res = await fse.outputFileSync(path, buffer);
-    console.log(`Saved new file ${path} to cache`);
-    return res;
+    try {
+      console.log("Transforming image to buffer");
+      const buffer = await image.toBuffer();
+      console.log("Saved image to Buffer");
+      const res = await fse.outputFileSync(path, buffer);
+      console.log(`Saved new file ${path} to cache`);
+      return res;
+    } catch (err) {
+      console.error(err);
+    }
   }
 }
 

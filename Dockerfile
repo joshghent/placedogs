@@ -9,8 +9,7 @@ RUN	apk --no-cache add libpng librsvg libgsf giflib libjpeg-turbo musl \
   && apk --no-cache add --virtual .build-dependencies g++ make python curl tar gtk-doc gobject-introspection expat-dev glib-dev libpng-dev libjpeg-turbo-dev giflib-dev librsvg-dev  \
   && su node \
   && npm install sharp@${SHARP_VERSION} --g --production --unsafe-perm \
-  && chown node:node /usr/local/lib/node_modules -R \
-  && apk del .build-dependencies
+  && chown node:node /usr/local/lib/node_modules -R
 
 WORKDIR /app
 COPY . /app
