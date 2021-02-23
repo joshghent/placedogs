@@ -47,3 +47,13 @@ code {
   margin: 0 auto;
   max-width: 600px;
 }
+
+h2 {
+  font-size: 20px;
+  font-weight: normal;
+}
+
+.submit-prompt {
+  margin-top: 50px;
+  margin-bottom: 50px;
+}
