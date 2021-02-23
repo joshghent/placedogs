@@ -35,6 +35,23 @@ export class Image {
       console.error(err);
     }
   }
+
+  public static async getImageFromCache(cacheFolder: string) {
+    console.log("Getting image from cache if any");
+
+    try {
+      const files = await fs.readdirSync(cacheFolder);
+      let fileName = '';
+      if (files.length > 0) {
+        fileName = `${cacheFolder}/${files[0]}`;
+      }
+
+      return fileName;
+    } catch (err) {
+      console.log(`Could not read directory or it doesn't exist. Probably the latter. ${err}`);
+      return '';
+    }
+  }
 }
 
 export default Image;

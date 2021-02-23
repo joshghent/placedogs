@@ -26,10 +26,17 @@ router.get('/:width/:height', asyncHandler(async (req, res) => {
       return res.status(400).json({ "message": "Please provide a valid width and height" });
     }
     console.log(`Got image path '${appRoot}/server/images/${randomImagePath}'`);
+
+    // Fetch image from the cache if present
+    const cacheFolder = `${appRoot}/.cache/${number}/${req.params.width}/${req.params.height}`;
+    const file = await Image.getImageFromCache(cacheFolder);
+    console.log(file);
+    if (file !== '') return res.sendFile(file);
+
     const resizeTimer = new Date();
     const response = Image.resize(`${appRoot}/server/images/${randomImagePath}`, 'jpeg', Number(req.params.width), Number(req.params.height));
     console.log(`Completed image resize in ${(new Date().getTime() - resizeTimer.getTime())} ms`);
-    const cachePath = `${appRoot}/.cache/${number}/${req.params.width}/${req.params.height}/${new Date().getTime()}.jpeg`;
+    const cachePath = `${cacheFolder}/${new Date().getTime()}.jpeg`;
     await Image.save(cachePath, response);
     console.log("Successfully cached image. Returning file to request now");
     res.sendFile(cachePath);
