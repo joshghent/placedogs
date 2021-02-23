@@ -6,6 +6,8 @@ services:
     restart: always
     expose:
       - "8033"
+    networks:
+      - https-proxy
     volumes:
       - $PWD/.cache:/app/.cache
     environment:
@@ -15,3 +17,8 @@ services:
       - VIRTUAL_PORT=8033
     ports:
       - "8033:8033"
+
+networks:
+  https-proxy:
+    external:
+      name: https-proxy
