@@ -17,6 +17,7 @@ const randomNumber = (min: number, max: number) => {
 
 router.get('/:width/:height', asyncHandler(async (req, res) => {
   try {
+    console.log(`Got request for width: ${req.params.width} and height: ${req.params.height}`);
     const regex = /^\d+$/;
     if (!req.params.width || req.params.width === '' || !regex.test(req.params.width)) {
       console.log(`Invalid request ${req.path}`);
