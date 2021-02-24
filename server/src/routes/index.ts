@@ -17,14 +17,21 @@ const randomNumber = (min: number, max: number) => {
 
 router.get('/:width/:height', asyncHandler(async (req, res) => {
   try {
+    const regex = /^\d+$/;
+    if (!req.params.width || req.params.width === '' || !regex.test(req.params.width)) {
+      console.log(`Invalid request ${req.path}`);
+      return res.status(400).json({ "message": "Please provide a valid width and height" });
+    }
+
+    if (!req.params.height || req.params.height === '' || !regex.test(req.params.height)) {
+      console.log(`Invalid request ${req.path}`);
+      return res.status(400).json({ "message": "Please provide a valid width and height" });
+    }
+
     const number = randomNumber(1, 9);
     const randomImagePath = `${number}.jpeg`;
     console.log(`Got random image ${randomImagePath}`);
     res.type('image/jpeg');
-    if ((req.params.width && isNaN(Number(req.params.width))) || (req.params.height && isNaN(Number(req.params.height)))) {
-      console.log(`Invalid request ${req.path}`);
-      return res.status(400).json({ "message": "Please provide a valid width and height" });
-    }
     console.log(`Got image path '${appRoot}/server/images/${randomImagePath}'`);
 
     // Fetch image from the cache if present
