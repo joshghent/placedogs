@@ -28,6 +28,11 @@ router.get('/:width/:height', asyncHandler(async (req, res) => {
       return res.status(400).json({ "message": "Please provide a valid width and height" });
     }
 
+    if (Number(req.params.width) > 3048 || Number(req.params.height) > 3048) {
+      console.log(`Invalid request ${req.path}`);
+      return res.status(400).json({ "message": "Please provide a width and height below 3048 pixels" });
+    }
+
     const number = randomNumber(1, 9);
     const randomImagePath = `${number}.jpeg`;
     console.log(`Got random image ${randomImagePath}`);
