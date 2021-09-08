@@ -1,0 +1,14 @@
+name: Auto Update Image Count
+
+on:
+  push:
+    paths:
+      - '**.jpeg'
+
+jobs:
+  update-image-count:
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main' # Running this job only for master branch
+    
+    steps:
+      - uses: actions/checkout@v2 # Checking out the repo
