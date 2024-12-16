@@ -3,7 +3,7 @@ import helmet from 'helmet';
 import path from 'path';
 import morgan from 'morgan';
 import appRoot from 'app-root-path';
-import { middleware as httpContextMiddleware } from "express-http-context";
+import * as httpContext from "express-http-context2";
 import router from '../routes';
 
 export class Application {
@@ -20,8 +20,7 @@ export class Application {
 
     this.instance.use(express.json());
     this.instance.use(express.urlencoded({ extended: true }));
-    // @ts-ignore
-    this.instance.use(httpContextMiddleware.middleware);
+    this.instance.use(httpContext.middleware);
     this.instance.use(helmet({ contentSecurityPolicy: false }));
 
     this.instance.use(morgan(':method :status :url (:res[content-length] bytes) :response-time ms', {

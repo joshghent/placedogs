@@ -1,5 +1,5 @@
 FROM node:20
-LABEL maintainer "Josh Ghent <me@joshghent.com>"
+LABEL maintainer="Josh Ghent <me@joshghent.com>"
 
 # Install curl for healthcheck and Sharp dependencies
 RUN apt-get update && \
@@ -11,7 +11,7 @@ WORKDIR /app
 COPY . /app
 # This is always 1 more than the number of images in the folder
 ENV IMAGE_COUNT=32
-RUN yarn
+RUN yarn install --frozen-lockfile --prefer-offline
 RUN yarn run build
 RUN yarn run build:server
 EXPOSE 8033
