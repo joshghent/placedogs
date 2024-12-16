@@ -1,4 +1,4 @@
-import express from 'express';
+import express, { NextFunction, Request, Response } from 'express';
 import bodyParser from 'body-parser';
 import helmet from 'helmet';
 import path from 'path';
@@ -29,13 +29,13 @@ export class Application {
       immediate: false,
     }));
 
-    this.instance.use(router);
+    this.instance.use('/', router);
 
-    this.instance.use((req: express.Request, res: express.Response) => {
-      if (!res.headersSent) res.status(404);
+    this.instance.use((req: Request, res: Response) => {
+      if (!res.headersSent) res.status(404).send();
     });
 
-    this.instance.use((err: Error, req: express.Request, res: express.Response, next: express.NextFunction) => {
+    this.instance.use((err: Error, req: Request, res: Response, next: NextFunction) => {
       console.log(`Error when processing request (${req.path}). Error: ${JSON.stringify(err)}`);
       if (process.env.NODE_ENV === "dev") return res.status(500).jsonp({ error: { message: err.message, stack: err.stack } });
       return res.status(500).jsonp({ error: { message: err.message } });

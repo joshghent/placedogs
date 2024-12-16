@@ -1,4 +1,4 @@
-import express, { Request, Response } from "express";
+import express, { Request, Response, NextFunction } from "express";
 import asyncHandler from "express-async-handler";
 import appRoot from "app-root-path";
 import Image from "../lib/image";
@@ -10,7 +10,7 @@ const router = express.Router();
 // Get the number of files in the images folder
 const imageCount = fs.readdirSync(`${appRoot}/server/images`).length;
 
-router.get("/", (req, res) => {
+router.get("/", (req: Request, res: Response) => {
   res.sendFile(path.join(`${appRoot}`, "build", "index.html"));
 });
 
@@ -21,7 +21,7 @@ const randomNumber = (min: number, max: number) => {
 
 router.get(
   "/:width/:height",
-  asyncHandler(async (req, res) => {
+  asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
     try {
       console.log(
         `Got request for width: ${req.params.width} and height: ${req.params.height}`
@@ -70,7 +70,9 @@ router.get(
       const cacheFolder = `${appRoot}/.cache/${number}/${req.params.width}/${req.params.height}`;
       const file = await Image.getImageFromCache(cacheFolder);
       console.log(file);
-      if (file !== "") return res.sendFile(file);
+      if (file !== "") {
+        return res.sendFile(file);
+      }
 
       const resizeTimer = new Date();
       const response = Image.resize(
@@ -87,10 +89,9 @@ router.get(
       const cachePath = `${cacheFolder}/${new Date().getTime()}.jpeg`;
       await Image.save(cachePath, response);
       console.log("Successfully cached image. Returning file to request now");
-      res.sendFile(cachePath);
+      return res.sendFile(cachePath);
     } catch (err) {
-      console.error(err);
-      throw err;
+      next(err);
     }
   })
 );
