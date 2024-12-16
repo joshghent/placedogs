@@ -1,6 +1,7 @@
-import express, { Request, Response } from "express";
+import express, { Request, Response, NextFunction } from "express";
 import asyncHandler from "express-async-handler";
 import appRoot from "app-root-path";
+import rateLimit from "express-rate-limit";
 import Image from "../lib/image";
 import path from "path";
 import fs from "fs";
@@ -10,7 +11,13 @@ const router = express.Router();
 // Get the number of files in the images folder
 const imageCount = fs.readdirSync(`${appRoot}/server/images`).length;
 
-router.get("/", (req, res) => {
+const limiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 100, // Limit each IP to 100 requests per windowMs
+  message: 'Too many requests from this IP, please try again later'
+});
+
+router.get("/", limiter, (req: Request, res: Response) => {
   res.sendFile(path.join(`${appRoot}`, "build", "index.html"));
 });
 
@@ -21,7 +28,7 @@ const randomNumber = (min: number, max: number) => {
 
 router.get(
   "/:width/:height",
-  asyncHandler(async (req, res) => {
+  asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
     try {
       console.log(
         `Got request for width: ${req.params.width} and height: ${req.params.height}`
@@ -33,9 +40,10 @@ router.get(
         !regex.test(req.params.width)
       ) {
         console.log(`Invalid request ${req.path}`);
-        return res
+        res
           .status(400)
           .json({ message: "Please provide a valid width and height" });
+        return;
       }
 
       if (
@@ -44,16 +52,18 @@ router.get(
         !regex.test(req.params.height)
       ) {
         console.log(`Invalid request ${req.path}`);
-        return res
+        res
           .status(400)
           .json({ message: "Please provide a valid width and height" });
+        return;
       }
 
       if (Number(req.params.width) > 3048 || Number(req.params.height) > 3048) {
         console.log(`Invalid request ${req.path}`);
-        return res.status(400).json({
+        res.status(400).json({
           message: "Please provide a width and height below 3048 pixels",
         });
+        return;
       }
 
       console.log(`Total images in store: ${imageCount}`);
@@ -70,7 +80,9 @@ router.get(
       const cacheFolder = `${appRoot}/.cache/${number}/${req.params.width}/${req.params.height}`;
       const file = await Image.getImageFromCache(cacheFolder);
       console.log(file);
-      if (file !== "") return res.sendFile(file);
+      if (file !== "") {
+        return res.sendFile(file);
+      }
 
       const resizeTimer = new Date();
       const response = Image.resize(
@@ -88,15 +100,24 @@ router.get(
       await Image.save(cachePath, response);
       console.log("Successfully cached image. Returning file to request now");
       res.sendFile(cachePath);
+      return;
     } catch (err) {
-      console.error(err);
-      throw err;
+      next(err);
     }
   })
 );
 
 router.get("/health", (req: Request, res: Response) => {
-  return res.json({ message: "OK" });
+  const used = process.memoryUsage();
+  res.json({
+    status: 'ok',
+    uptime: process.uptime(),
+    memory: {
+      heapUsed: Math.round(used.heapUsed / 1024 / 1024) + 'MB',
+      heapTotal: Math.round(used.heapTotal / 1024 / 1024) + 'MB',
+      rss: Math.round(used.rss / 1024 / 1024) + 'MB',
+    }
+  });
 });
 
 export default router;

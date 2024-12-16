@@ -3,7 +3,7 @@ version: "3.3"
 services:
   app:
     build: .
-    restart: always
+    restart: unless-stopped
     expose:
       - "8033"
     networks:
@@ -17,6 +17,26 @@ services:
       - VIRTUAL_PORT=8033
     ports:
       - "8033:8033"
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+        compress: "true"
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+        reservations:
+          memory: 256M
+    labels:
+      - "com.centurylinklabs.watchtower.enable=true"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8033/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
 
 networks:
   https-proxy:

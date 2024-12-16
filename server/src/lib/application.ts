@@ -1,10 +1,9 @@
-import express from 'express';
-import bodyParser from 'body-parser';
+import express, { NextFunction, Request, Response } from 'express';
 import helmet from 'helmet';
 import path from 'path';
 import morgan from 'morgan';
 import appRoot from 'app-root-path';
-import { middleware as httpContextMiddleware } from "express-http-context";
+import * as httpContext from "express-http-context2";
 import router from '../routes';
 
 export class Application {
@@ -19,23 +18,22 @@ export class Application {
     this.instance.use(express.static(path.join(`${appRoot}`, 'build')));
     this.instance.use(express.static(path.join(`${appRoot}`, 'server', 'images')));
 
-    this.instance.use(bodyParser.json());
-    this.instance.use(bodyParser.urlencoded({ extended: true }));
-    this.instance.use(httpContextMiddleware);
+    this.instance.use(express.json());
+    this.instance.use(express.urlencoded({ extended: true }));
+    this.instance.use(httpContext.middleware);
     this.instance.use(helmet({ contentSecurityPolicy: false }));
 
     this.instance.use(morgan(':method :status :url (:res[content-length] bytes) :response-time ms', {
-      stream: { write: (text) => console.info(text.trim()) },
-      immediate: false,
+      stream: { write: (text: string) => console.info(text.trim()) }
     }));
 
     this.instance.use(router);
 
-    this.instance.use((req: express.Request, res: express.Response) => {
-      if (!res.headersSent) res.status(404);
+    this.instance.use((req: Request, res: Response) => {
+      if (!res.headersSent) res.status(404).send();
     });
 
-    this.instance.use((err: Error, req: express.Request, res: express.Response, next: express.NextFunction) => {
+    this.instance.use((err: Error, req: Request, res: Response, next: NextFunction) => {
       console.log(`Error when processing request (${req.path}). Error: ${JSON.stringify(err)}`);
       if (process.env.NODE_ENV === "dev") return res.status(500).jsonp({ error: { message: err.message, stack: err.stack } });
       return res.status(500).jsonp({ error: { message: err.message } });

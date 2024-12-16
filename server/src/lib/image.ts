@@ -6,21 +6,41 @@ export class Image {
   public static resize(path: string, format?: string, width?: number, height?: number) {
     try {
       const readStream = fs.createReadStream(path);
-      console.log(`Created read stream to '${path}'`);
       let transform = sharp();
-      console.log(`Created sharp instance`);
+
+      readStream.on('error', (err) => {
+        console.error(JSON.stringify({
+          event: 'read_stream_error',
+          error: err.message,
+          path
+        }));
+      });
+
+      transform.on('error', (err) => {
+        console.error(JSON.stringify({
+          event: 'transform_error',
+          error: err.message,
+          width,
+          height
+        }));
+      });
+
       if (width || height) {
-        console.log(`Transforming image to h: ${height}, w: ${width}`);
         transform = transform.resize(width, height);
       }
 
-      console.log(`Returning transform to response`);
       return readStream.pipe(transform);
-    } catch (err) {
-      console.error(err);
+    } catch (err: any) {
+      console.error(JSON.stringify({
+        event: 'resize_error',
+        error: err.message,
+        path,
+        width,
+        height
+      }));
       throw err;
     }
-  };
+  }
 
   public static async save(path: string, image: sharp.Sharp) {
     try {
