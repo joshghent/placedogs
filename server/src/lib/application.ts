@@ -1,5 +1,4 @@
 import express, { NextFunction, Request, Response } from 'express';
-import bodyParser from 'body-parser';
 import helmet from 'helmet';
 import path from 'path';
 import morgan from 'morgan';
@@ -19,17 +18,17 @@ export class Application {
     this.instance.use(express.static(path.join(`${appRoot}`, 'build')));
     this.instance.use(express.static(path.join(`${appRoot}`, 'server', 'images')));
 
-    this.instance.use(bodyParser.json());
-    this.instance.use(bodyParser.urlencoded({ extended: true }));
-    this.instance.use(httpContextMiddleware);
+    this.instance.use(express.json());
+    this.instance.use(express.urlencoded({ extended: true }));
+    // @ts-ignore
+    this.instance.use(httpContextMiddleware.middleware);
     this.instance.use(helmet({ contentSecurityPolicy: false }));
 
     this.instance.use(morgan(':method :status :url (:res[content-length] bytes) :response-time ms', {
-      stream: { write: (text) => console.info(text.trim()) },
-      immediate: false,
+      stream: { write: (text: string) => console.info(text.trim()) }
     }));
 
-    this.instance.use('/', router);
+    this.instance.use(router);
 
     this.instance.use((req: Request, res: Response) => {
       if (!res.headersSent) res.status(404).send();

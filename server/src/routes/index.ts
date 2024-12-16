@@ -33,9 +33,10 @@ router.get(
         !regex.test(req.params.width)
       ) {
         console.log(`Invalid request ${req.path}`);
-        return res
+        res
           .status(400)
           .json({ message: "Please provide a valid width and height" });
+        return;
       }
 
       if (
@@ -44,16 +45,18 @@ router.get(
         !regex.test(req.params.height)
       ) {
         console.log(`Invalid request ${req.path}`);
-        return res
+        res
           .status(400)
           .json({ message: "Please provide a valid width and height" });
+        return;
       }
 
       if (Number(req.params.width) > 3048 || Number(req.params.height) > 3048) {
         console.log(`Invalid request ${req.path}`);
-        return res.status(400).json({
+        res.status(400).json({
           message: "Please provide a width and height below 3048 pixels",
         });
+        return;
       }
 
       console.log(`Total images in store: ${imageCount}`);
@@ -89,7 +92,8 @@ router.get(
       const cachePath = `${cacheFolder}/${new Date().getTime()}.jpeg`;
       await Image.save(cachePath, response);
       console.log("Successfully cached image. Returning file to request now");
-      return res.sendFile(cachePath);
+      res.sendFile(cachePath);
+      return;
     } catch (err) {
       next(err);
     }
