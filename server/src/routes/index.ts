@@ -1,6 +1,7 @@
 import express, { Request, Response, NextFunction } from "express";
 import asyncHandler from "express-async-handler";
 import appRoot from "app-root-path";
+import rateLimit from "express-rate-limit";
 import Image from "../lib/image";
 import path from "path";
 import fs from "fs";
@@ -10,7 +11,13 @@ const router = express.Router();
 // Get the number of files in the images folder
 const imageCount = fs.readdirSync(`${appRoot}/server/images`).length;
 
-router.get("/", (req: Request, res: Response) => {
+const limiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 100, // Limit each IP to 100 requests per windowMs
+  message: 'Too many requests from this IP, please try again later'
+});
+
+router.get("/", limiter, (req: Request, res: Response) => {
   res.sendFile(path.join(`${appRoot}`, "build", "index.html"));
 });
 
