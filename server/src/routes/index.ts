@@ -96,7 +96,16 @@ router.get(
 );
 
 router.get("/health", (req: Request, res: Response) => {
-  return res.json({ message: "OK" });
+  const used = process.memoryUsage();
+  res.json({
+    status: 'ok',
+    uptime: process.uptime(),
+    memory: {
+      heapUsed: Math.round(used.heapUsed / 1024 / 1024) + 'MB',
+      heapTotal: Math.round(used.heapTotal / 1024 / 1024) + 'MB',
+      rss: Math.round(used.rss / 1024 / 1024) + 'MB',
+    }
+  });
 });
 
 export default router;
