@@ -5,38 +5,125 @@ use tokio::fs as tokio_fs;
 use bytes::Bytes;
 use rand;
 use std::fs;
+use chrono::Utc;
+use std::time::Instant;
 
-#[get("/{height}/{width}")]
+#[get("/{width}/{height}")]
 async fn resize_image(path: web::Path<(u32, u32)>, image_count: web::Data<u32>) -> impl Responder {
-    let (height, width) = path.into_inner();
+    let start_time = Instant::now();
+    let (width, height) = path.into_inner();
+
+    println!("[{}] New request for image {}x{}",
+        Utc::now().format("%Y-%m-%d %H:%M:%S%.3f"),
+        width,
+        height
+    );
 
     // Get a random image from the images directory
     let random_num = (rand::random::<u32>() % **image_count) + 1;
+    let cache_path = format!("./.cache/{}/{}/{}", random_num, width, height);
     let image_path = format!("./images/{}.jpeg", random_num);
 
+    println!("[{}] Selected image {} from {} available images",
+        Utc::now().format("%Y-%m-%d %H:%M:%S%.3f"),
+        random_num,
+        **image_count
+    );
+
+    // Check if cached version exists
+    if let Ok(cached_data) = tokio_fs::read(&cache_path).await {
+        let elapsed = start_time.elapsed();
+        println!("[{}] Serving cached image from {} (took {:.2}ms)",
+            Utc::now().format("%Y-%m-%d %H:%M:%S%.3f"),
+            cache_path,
+            elapsed.as_secs_f64() * 1000.0
+        );
+        return HttpResponse::Ok()
+            .content_type("image/jpeg")
+            .body(Bytes::from(cached_data));
+    }
+
     // Read the image file asynchronously
-    let image_data = match tokio_fs::read(image_path).await {
-        Ok(data) => data,
-        Err(_) => return HttpResponse::InternalServerError().body("Failed to read image"),
+    let image_data = match tokio_fs::read(&image_path).await {
+        Ok(data) => {
+            println!("[{}] Successfully read image file: {}",
+                Utc::now().format("%Y-%m-%d %H:%M:%S%.3f"),
+                image_path
+            );
+            data
+        },
+        Err(e) => {
+            println!("[{}] Failed to read image {}: {}",
+                Utc::now().format("%Y-%m-%d %H:%M:%S%.3f"),
+                image_path,
+                e
+            );
+            return HttpResponse::InternalServerError().body("Failed to read image");
+        }
     };
 
     // Load the image from bytes
     let img = match image::load_from_memory(&image_data) {
         Ok(img) => img,
-        Err(_) => return HttpResponse::InternalServerError().body("Failed to decode image"),
+        Err(e) => {
+            println!("[{}] Failed to decode image: {}",
+                Utc::now().format("%Y-%m-%d %H:%M:%S%.3f"),
+                e
+            );
+            return HttpResponse::InternalServerError().body("Failed to decode image");
+        }
     };
 
-    // Resize the image
-    let resized = img.resize(width, height, FilterType::Triangle);
+    println!("[{}] Resizing image to {}x{}",
+        Utc::now().format("%Y-%m-%d %H:%M:%S%.3f"),
+        width,
+        height
+    );
 
-    // Convert to PNG format
+    // Simple resize to exact dimensions
+    let resized = img.resize_to_fill(width, height, FilterType::Triangle);
+
+    // Convert to JPEG format
     let mut buf = Vec::new();
-    if resized.write_to(&mut std::io::Cursor::new(&mut buf), image::ImageFormat::Png).is_err() {
+    if let Err(e) = resized.write_to(&mut std::io::Cursor::new(&mut buf), image::ImageFormat::Jpeg) {
+        println!("[{}] Failed to encode image: {}",
+            Utc::now().format("%Y-%m-%d %H:%M:%S%.3f"),
+            e
+        );
         return HttpResponse::InternalServerError().body("Failed to encode image");
+    }
+
+    // Create cache directory structure if it doesn't exist
+    let cache_dir = format!("./.cache/{}/{}", random_num, width);
+    if let Err(e) = tokio_fs::create_dir_all(&cache_dir).await {
+        println!("[{}] Failed to create cache directory {}: {}",
+            Utc::now().format("%Y-%m-%d %H:%M:%S%.3f"),
+            cache_dir,
+            e
+        );
+        return HttpResponse::InternalServerError().body("Failed to create cache directory");
+    }
+
+    // Save to cache
+    if let Err(e) = tokio_fs::write(&cache_path, &buf).await {
+        println!("[{}] Failed to write cache file {}: {}",
+            Utc::now().format("%Y-%m-%d %H:%M:%S%.3f"),
+            cache_path,
+            e
+        );
+        return HttpResponse::InternalServerError().body("Failed to cache image");
     }
 
     // Convert buffer to bytes
     let image_bytes = Bytes::from(buf);
+
+    let elapsed = start_time.elapsed();
+    println!("[{}] Successfully served fresh image {}x{} (took {:.2}ms)",
+        Utc::now().format("%Y-%m-%d %H:%M:%S%.3f"),
+        width,
+        height,
+        elapsed.as_secs_f64() * 1000.0
+    );
 
     // Return as response with correct content type
     HttpResponse::Ok()
@@ -46,6 +133,11 @@ async fn resize_image(path: web::Path<(u32, u32)>, image_count: web::Data<u32>) 
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
+    // Create cache directory if it doesn't exist
+    if let Err(_) = fs::create_dir_all("./.cache") {
+        println!("Warning: Failed to create cache directory");
+    }
+
     let addr = "127.0.0.1:8033";
 
     // Count the number of JPEG files in the images directory
@@ -67,7 +159,7 @@ async fn main() -> std::io::Result<()> {
     println!("Found {} images in the images directory", image_count);
     println!("Starting server at http://{}", addr);
     println!("Routes:");
-    println!("  - GET /{{height}}/{{width}} - Resize images dynamically");
+    println!("  - GET /{{width}}/{{height}} - Resize images dynamically");
     println!("  - GET /* - Serve static files from ./static");
 
     HttpServer::new(move || {
