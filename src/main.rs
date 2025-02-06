@@ -4,14 +4,14 @@ use image::imageops::FilterType;
 use tokio::fs as tokio_fs;
 use bytes::Bytes;
 use rand;
+use std::fs;
 
 #[get("/{height}/{width}")]
-async fn resize_image(path: web::Path<(u32, u32)>) -> impl Responder {
+async fn resize_image(path: web::Path<(u32, u32)>, image_count: web::Data<u32>) -> impl Responder {
     let (height, width) = path.into_inner();
 
     // Get a random image from the images directory
-    let image_count = 31; // Update this with your actual number of images
-    let random_num = (rand::random::<u32>() % image_count) + 1;
+    let random_num = (rand::random::<u32>() % **image_count) + 1;
     let image_path = format!("./images/{}.jpeg", random_num);
 
     // Read the image file asynchronously
@@ -47,15 +47,34 @@ async fn resize_image(path: web::Path<(u32, u32)>) -> impl Responder {
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
     let addr = "127.0.0.1:8033";
+
+    // Count the number of JPEG files in the images directory
+    let image_count = fs::read_dir("./images")
+        .map(|entries| {
+            entries
+                .filter_map(Result::ok)
+                .filter(|entry| {
+                    entry.path()
+                        .extension()
+                        .and_then(|ext| ext.to_str())
+                        .map(|ext| ext.eq_ignore_ascii_case("jpeg") || ext.eq_ignore_ascii_case("jpg"))
+                        .unwrap_or(false)
+                })
+                .count() as u32
+        })
+        .unwrap_or(0);
+
+    println!("Found {} images in the images directory", image_count);
     println!("Starting server at http://{}", addr);
     println!("Routes:");
     println!("  - GET /{{height}}/{{width}} - Resize images dynamically");
     println!("  - GET /* - Serve static files from ./static");
 
-    HttpServer::new(|| {
+    HttpServer::new(move || {
         App::new()
-            .service(resize_image) // Dynamic image resize route
-            .service(Files::new("/", "./static").index_file("index.html")) // Serve static files from "./static/"
+            .app_data(web::Data::new(image_count))
+            .service(resize_image)
+            .service(Files::new("/", "./static").index_file("index.html"))
     })
     .bind(addr)?
     .run()
