@@ -1,6 +1,9 @@
+extern crate photon_rs;
+use photon_rs::native::open_image;
+use photon_rs::transform::{resize, SamplingFilter};
+
 use actix_files::Files;
 use actix_web::{get, web, App, HttpResponse, HttpServer, Responder};
-use image::imageops::FilterType;
 use tokio::fs as tokio_fs;
 use bytes::Bytes;
 use rand;
@@ -44,35 +47,7 @@ async fn resize_image(path: web::Path<(u32, u32)>, image_count: web::Data<u32>) 
     }
 
     // Read the image file asynchronously
-    let image_data = match tokio_fs::read(&image_path).await {
-        Ok(data) => {
-            println!("[{}] Successfully read image file: {}",
-                Utc::now().format("%Y-%m-%d %H:%M:%S%.3f"),
-                image_path
-            );
-            data
-        },
-        Err(e) => {
-            println!("[{}] Failed to read image {}: {}",
-                Utc::now().format("%Y-%m-%d %H:%M:%S%.3f"),
-                image_path,
-                e
-            );
-            return HttpResponse::InternalServerError().body("Failed to read image");
-        }
-    };
-
-    // Load the image from bytes
-    let img = match image::load_from_memory(&image_data) {
-        Ok(img) => img,
-        Err(e) => {
-            println!("[{}] Failed to decode image: {}",
-                Utc::now().format("%Y-%m-%d %H:%M:%S%.3f"),
-                e
-            );
-            return HttpResponse::InternalServerError().body("Failed to decode image");
-        }
-    };
+    let mut img = open_image(&image_path).unwrap();
 
     println!("[{}] Resizing image to {}x{}",
         Utc::now().format("%Y-%m-%d %H:%M:%S%.3f"),
@@ -80,18 +55,11 @@ async fn resize_image(path: web::Path<(u32, u32)>, image_count: web::Data<u32>) 
         height
     );
 
-    // Simple resize to exact dimensions
-    let resized = img.resize_to_fill(width, height, FilterType::Triangle);
+    // Replace the simple resize operation
+    let resized = resize(&mut img, width, height, SamplingFilter::Triangle);
 
-    // Convert to JPEG format
-    let mut buf = Vec::new();
-    if let Err(e) = resized.write_to(&mut std::io::Cursor::new(&mut buf), image::ImageFormat::Jpeg) {
-        println!("[{}] Failed to encode image: {}",
-            Utc::now().format("%Y-%m-%d %H:%M:%S%.3f"),
-            e
-        );
-        return HttpResponse::InternalServerError().body("Failed to encode image");
-    }
+    // Save the resized image to a buffer
+    let buf = resized.get_bytes();
 
     // Create cache directory structure if it doesn't exist
     let cache_dir = format!("./.cache/{}/{}", random_num, width);
