@@ -9,7 +9,7 @@ primary_region = 'lhr'
 [build]
 
 [env]
-  PORT = '8080'
+  PORT = '8033'
 
 [http_service]
   internal_port = 8033
