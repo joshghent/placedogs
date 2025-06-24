@@ -20,11 +20,13 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 COPY --from=builder /app/target/release/placedog /usr/local/bin
 COPY ./images ./images
+COPY ./static ./static
 
 RUN mkdir ./.cache
 
 RUN chmod +rx /usr/local/bin/placedog && \
     chmod -R +r ./images && \
+    chmod -R +r ./static && \
     chmod -R 777 ./.cache
 
 RUN useradd -m -u 1000 placedog
