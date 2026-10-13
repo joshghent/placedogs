@@ -1893,6 +1893,7 @@ dependencies = [
  "env_logger",
  "futures",
  "governor",
+ "image",
  "log",
  "num_cpus",
  "photon-rs",
