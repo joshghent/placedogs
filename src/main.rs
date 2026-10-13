@@ -364,7 +364,7 @@ async fn resize_image(
                 let img = photon_rs::native::open_image_from_bytes(&image_data)
                     .map_err(|e| format!("Failed to load image: {}", e))?;
                 let resized = resize(&img, width, height, SamplingFilter::Triangle);
-                Ok::<Vec<u8>, String>(resized.get_bytes())
+                Ok::<Vec<u8>, String>(resized.get_bytes_jpeg(85))
             })
             .await
             {
