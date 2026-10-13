@@ -442,7 +442,8 @@ async fn main() -> std::io::Result<()> {
         log::error!("Warning: Failed to create cache directory");
     }
 
-    let addr = "0.0.0.0:8033";
+    let port = std::env::var("PORT").unwrap_or_else(|_| "8033".to_string());
+    let addr = format!("0.0.0.0:{}", port);
     let system_monitor = web::Data::new(SystemMonitor::new());
     let rate_limiter = web::Data::new(RateLimitingMiddleware::new());
     let google_analytics = web::Data::new(GoogleAnalytics::new());
@@ -481,7 +482,7 @@ async fn main() -> std::io::Result<()> {
             .service(health_check)
             .service(Files::new("/", "./static").index_file("index.html"))
     })
-    .bind(addr)?
+    .bind(&addr)?
     .run()
     .await
 }
