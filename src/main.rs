@@ -1,4 +1,6 @@
 extern crate photon_rs;
+#[cfg(test)]
+mod tests;
 use photon_rs::transform::{resize, SamplingFilter};
 
 use actix_files::Files;
@@ -352,7 +354,7 @@ async fn resize_image(
         ga.track_image_request(&request_log_info, width, height, true, elapsed_ms).await;
 
         return HttpResponse::Ok()
-            .content_type("image/jpeg")
+            .content_type("image/png")
             .body(Bytes::from(cached_data));
     }
 
@@ -364,6 +366,7 @@ async fn resize_image(
                 let img = photon_rs::native::open_image_from_bytes(&image_data)
                     .map_err(|e| format!("Failed to load image: {}", e))?;
                 let resized = resize(&img, width, height, SamplingFilter::Triangle);
+                // Photon encodes get_bytes() as PNG, regardless of the source format.
                 Ok::<Vec<u8>, String>(resized.get_bytes())
             })
             .await
@@ -391,7 +394,7 @@ async fn resize_image(
                     ga.track_image_request(&request_log_info, width, height, false, elapsed_ms).await;
 
                     HttpResponse::Ok()
-                        .content_type("image/jpeg")
+                        .content_type("image/png")
                         .body(Bytes::from(buf))
                 }
                 Ok(Err(e)) => {
